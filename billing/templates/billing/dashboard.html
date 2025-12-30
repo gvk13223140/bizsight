@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | BizSight{% endblock %}
+
+{% block content %}
+
+<h1 style="margin-bottom: 6px;">Dashboard</h1>
+<p style="color:#6B7280; margin-bottom:24px;">
+  {{ today|default:"Today" }}
+</p>
+
+<!-- ================= METRICS ================= -->
+<div style="display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px;">
+
+  <div class="card">
+    <p class="label">Today’s Sales</p>
+    <h2 class="metric">₹{{ metrics.today_sales|floatformat:0 }}</h2>
+  </div>
+
+  <div class="card">
+    <p class="label">Total Bills</p>
+    <h2 class="metric">{{ metrics.total_bills }}</h2>
+  </div>
+
+  <div class="card">
+    <p class="label">Paid</p>
+    <h2 class="metric" style="color:#166534;">{{ metrics.paid }}</h2>
+  </div>
+
+  <div class="card">
+    <p class="label">Unpaid</p>
+    <h2 class="metric" style="color:#991B1B;">{{ metrics.unpaid }}</h2>
+  </div>
+
+  <div class="card">
+    <p class="label">Pay Later</p>
+    <h2 class="metric" style="color:#92400E;">{{ metrics.pay_later }}</h2>
+  </div>
+
+</div>
+
+<!-- ================= RECENT BILLS ================= -->
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="margin:0;">Recent Bills</h3>
+    <a href="/billing/create/" class="btn btn-primary">+ New Bill</a>
+  </div>
+
+  <table style="width:100%; margin-top:16px; border-collapse:collapse;">
+    <thead>
+      <tr style="border-bottom:1px solid #ddd;">
+        <th align="left">Bill No</th>
+        <th align="left">Customer</th>
+        <th align="right">Amount</th>
+        <th align="center">Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for bill in recent_bills %}
+      <tr
+        onclick="window.location.href='/billing/bill/{{ bill.id }}/'"
+        style="border-bottom:1px solid #eee; cursor:pointer;"
+      >
+        <td>{{ bill.bill_number }}</td>
+        <td>{{ bill.customer_name|default:"Walk-in" }}</td>
+        <td align="right">₹{{ bill.total_amount|floatformat:0 }}</td>
+        <td align="center">
+          <span class="status {{ bill.payment_status }}">
+            {{ bill.status_label }}
+           </span>
+
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" style="text-align:center; padding:20px; color:#777;">
+          No bills yet.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= STYLES ================= -->
+<style>
+.card {
+  background:white;
+  border:1px solid #E5E7EB;
+  border-radius:8px;
+  padding:16px;
+}
+
+.label {
+  font-size:13px;
+  color:#6B7280;
+  margin-bottom:6px;
+}
+
+.metric {
+  margin:0;
+  font-size:26px;
+  font-weight:600;
+}
+
+/* STATUS BADGES */
+.status {
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:500;
+  display:inline-block;
+  text-transform:capitalize;
+}
+
+.status.paid {
+  background:#DCFCE7;
+  color:#166534;
+}
+
+.status.unpaid {
+  background:#FEE2E2;
+  color:#991B1B;
+}
+
+.status.pay_later {
+  background:#FEF3C7;
+  color:#92400E;
+}
+</style>
+
+{% endblock %}

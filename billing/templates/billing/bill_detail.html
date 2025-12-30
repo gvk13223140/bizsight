@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Bill {{ bill.bill_number }} | BizSight{% endblock %}
+
+{% block content %}
+
+<div style="max-width:900px; margin:auto;">
+
+  <!-- ================= HEADER ================= -->
+  <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h2 style="margin:0;">{{ business.name }}</h2>
+      <p style="color:#6B7280; margin-top:4px;">
+        Bill No: <strong>{{ bill.bill_number }}</strong><br>
+        Date: {{ bill.created_at|date:"d M Y, h:i A" }}
+      </p>
+    </div>
+
+    <div>
+      <span class="status-badge {{ bill.payment_status|lower }}">
+        {{ bill.payment_status|title }}
+      </span>
+    </div>
+  </div>
+
+  <br>
+
+  <!-- ================= CUSTOMER DETAILS ================= -->
+  <div class="card">
+    <h3>Customer Details</h3>
+
+    <p><strong>Name:</strong>
+      {{ bill.customer_name|default:"Walk-in Customer" }}
+    </p>
+
+    {% if bill.customer_phone %}
+      <p><strong>Phone:</strong> {{ bill.customer_phone }}</p>
+    {% endif %}
+
+    {% if bill.customer_email %}
+      <p><strong>Email:</strong> {{ bill.customer_email }}</p>
+    {% endif %}
+
+    {% if bill.customer_address %}
+      <p><strong>Address:</strong><br>{{ bill.customer_address|linebreaksbr }}</p>
+    {% endif %}
+  </div>
+
+  <br>
+
+  <!-- ================= ITEMS ================= -->
+  <div class="card">
+    <h3>Items</h3>
+
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th width="80">Qty</th>
+          <th width="120">Price (₹)</th>
+          <th width="120">Total (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in bill.items.all %}
+        <tr>
+          <td>{{ item.item_name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td style="text-align:right;">{{ item.price }}</td>
+          <td style="text-align:right;">{{ item.total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <br>
+
+  <!-- ================= SUMMARY ================= -->
+  <div class="card">
+    <h3>Summary</h3>
+
+    <div class="row">
+      <span>Subtotal</span>
+      <span>₹{{ bill.subtotal }}</span>
+    </div>
+
+    <div class="row">
+      <span>Discount</span>
+      <span>- ₹{{ bill.discount }}</span>
+    </div>
+
+    <hr>
+
+    <div class="row total">
+      <strong>Total</strong>
+      <strong>₹{{ bill.total_amount }}</strong>
+    </div>
+  </div>
+
+  <br>
+
+  <!-- ================= PAYMENT ================= -->
+  <div class="card" style="text-align:center;">
+    <h3>UPI Payment</h3>
+
+    <img src="{{ qr_url }}" alt="UPI QR" style="max-width:220px; margin:12px 0;">
+
+    <p style="color:#6B7280;">
+      Scan to pay using any UPI app
+    </p>
+  </div>
+
+  <br>
+
+  <!-- ================= ACTIONS ================= -->
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+      ← Back to Dashboard
+    </a>
+
+    <div>
+      <a href="{% url 'download_bill_pdf' bill.id %}" class="btn btn-primary">
+        Download PDF
+      </a>
+
+      {% if bill.email_required %}
+        <button class="btn btn-secondary" disabled>
+          Email Bill (Coming Soon)
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= STYLES ================= -->
+<style>
+.card {
+  background:#fff;
+  border:1px solid #E5E7EB;
+  border-radius:8px;
+  padding:16px;
+}
+
+.invoice-table {
+  width:100%;
+  border-collapse:collapse;
+}
+
+.invoice-table th,
+.invoice-table td {
+  border:1px solid #E5E7EB;
+  padding:8px;
+}
+
+.row {
+  display:flex;
+  justify-content:space-between;
+  margin:6px 0;
+}
+
+.row.total {
+  font-size:18px;
+}
+
+.status-badge {
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:14px;
+  font-weight:600;
+}
+
+.status-badge.paid {
+  background:#DCFCE7;
+  color:#166534;
+}
+
+.status-badge.unpaid {
+  background:#FEE2E2;
+  color:#991B1B;
+}
+
+.status-badge.pay_later {
+  background:#FEF9C3;
+  color:#854D0E;
+}
+</style>
+
+{% endblock %}

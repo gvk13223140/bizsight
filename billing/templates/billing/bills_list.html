@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Bills | BizSight{% endblock %}
+
+{% block content %}
+
+<h1 style="margin-bottom:6px;">All Bills</h1>
+<p style="color:#6B7280; margin-bottom:24px;">
+  Manage and track all generated bills
+</p>
+
+<div class="card">
+
+  <table class="invoice-table">
+    <thead>
+      <tr>
+        <th>Bill No</th>
+        <th>Customer</th>
+        <th>Date</th>
+        <th>Amount (₹)</th>
+        <th>Status</th>
+        <th style="text-align:right;">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for bill in bills %}
+      <tr>
+        <td>{{ bill.bill_number }}</td>
+        <td>{{ bill.customer_name|default:"Walk-in" }}</td>
+        <td>{{ bill.created_at|date:"d M Y" }}</td>
+        <td>₹{{ bill.total_amount }}</td>
+
+        <td>
+          <span class="status {{ bill.payment_status|lower }}">
+            {{ bill.status_label }}
+          </span>
+        </td>
+
+        <td style="text-align:right;">
+          <a href="{% url 'bill_detail' bill.id %}" class="btn btn-secondary">
+            View
+          </a>
+          <a href="{% url 'download_bill_pdf' bill.id %}" class="btn btn-primary">
+            PDF
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center; padding:20px; color:#777;">
+          No bills found.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+<style>
+.invoice-table {
+  width:100%;
+  border-collapse:collapse;
+}
+
+.invoice-table th,
+.invoice-table td {
+  border:1px solid #E5E7EB;
+  padding:10px;
+  text-align:left;
+}
+
+.status {
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:600;
+}
+
+.status.paid {
+  background:#DCFCE7;
+  color:#166534;
+}
+
+.status.unpaid {
+  background:#FEE2E2;
+  color:#991B1B;
+}
+
+.status.pay_later {
+  background:#FEF3C7;
+  color:#92400E;
+}
+
+.card {
+  background:white;
+  border:1px solid #E5E7EB;
+  border-radius:8px;
+  padding:16px;
+}
+</style>
+
+{% endblock %}

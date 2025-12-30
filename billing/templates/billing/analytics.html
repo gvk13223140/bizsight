@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Analytics | BizSight{% endblock %}
+
+{% block content %}
+
+<h1>Analytics</h1>
+<p style="color:#6B7280;">Business performance insights</p>
+
+<!-- OVERVIEW CARDS -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin:24px 0;">
+  <div class="card">
+    <p>Total Revenue</p>
+    <h2>₹{{ overview.total_revenue }}</h2>
+  </div>
+  <div class="card">
+    <p>Total Bills</p>
+    <h2>{{ overview.total_bills }}</h2>
+  </div>
+  <div class="card">
+    <p>Paid Bills</p>
+    <h2>{{ overview.paid_bills }}</h2>
+  </div>
+  <div class="card">
+    <p>Unpaid Bills</p>
+    <h2>{{ overview.unpaid_bills }}</h2>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Download Reports</h3>
+
+  <div style="display:flex; gap:12px; margin-top:12px;">
+    <a href="{% url 'download_sales_csv' %}" class="btn btn-secondary">
+      ⬇ CSV
+    </a>
+
+    <a href="{% url 'download_sales_excel' %}" class="btn btn-secondary">
+      ⬇ Excel
+    </a>
+
+    <a href="{% url 'download_sales_pdf' %}" class="btn btn-secondary">
+      ⬇ PDF
+    </a>
+  </div>
+</div>
+
+<!-- SALES TREND -->
+<div class="card">
+  <h3>Sales Trend (Last 7 Days)</h3>
+  <canvas id="salesChart"></canvas>
+</div>
+
+<br>
+
+<!-- TOP ITEMS -->
+<div class="card">
+  <h3>Top Selling Items</h3>
+  <table style="width:100%; border-collapse:collapse; margin-top:12px;">
+    <tr>
+      <th align="left">Item</th>
+      <th align="right">Qty</th>
+      <th align="right">Revenue</th>
+    </tr>
+    {% for item in top_items %}
+    <tr>
+      <td>{{ item.item_name }}</td>
+      <td align="right">{{ item.total_qty }}</td>
+      <td align="right">₹{{ item.revenue }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<br>
+
+<!-- SMART INSIGHTS -->
+<div class="card">
+  <h3>BizMitra Insights 🤖</h3>
+  <ul>
+    {% for insight in insights %}
+      <li>{{ insight }}</li>
+    {% endfor %}
+  </ul>
+</div>
+<div class="card">
+  <h3>Import Sales from Google Sheets</h3>
+
+  <form method="post" action="{% url 'import_google_sheet' %}">
+    {% csrf_token %}
+    <input
+      type="url"
+      name="sheet_url"
+      placeholder="Paste Google Sheet URL"
+      required
+      style="width:100%; margin-bottom:12px;"
+    />
+    <button class="btn btn-primary">
+      Import Data
+    </button>
+  </form>
+
+  <p style="font-size:13px; color:#6B7280; margin-top:8px;">
+    Sheet must be public & follow BizSight format.
+  </p>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const labels = JSON.parse('{{ chart_labels|escapejs }}');
+  const data = JSON.parse('{{ chart_values|escapejs }}');
+
+  new Chart(document.getElementById("salesChart"), {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Daily Sales",
+        data: data,
+        borderWidth: 2,
+        tension: 0.4
+      }]
+    }
+  });
+</script>
+
+
+{% endblock %}

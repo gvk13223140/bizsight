@@ -1,0 +1,25 @@
+firebase_key.json
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.env.*
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# Firebase
+firebase_key.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
