@@ -2,14 +2,14 @@ from django.db.models import Sum
 from billing.models import BillItem
 
 
-def get_top_items(business, limit=5):
+def get_top_items(bills, limit=5):
     return (
         BillItem.objects
-        .filter(bill__business=business)
+        .filter(bill__in=bills)
         .values("item_name")
         .annotate(
-            total_qty=Sum("quantity"),
-            revenue=Sum("total")
+            qty=Sum("quantity"),
+            revenue=Sum("total"),
         )
         .order_by("-revenue")[:limit]
     )

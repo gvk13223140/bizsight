@@ -1,0 +1,3 @@
+item_name,quantity,price,customer_name,customer_phone,customer_email,discount,payment_status,payment_mode,date
+Paracetamol,2,40,Walk-in,,,0,PAID,CASH,2026-01-01
+Vitamin C Tablets,1,120,Ramesh,9876543210,ramesh@gmail.com,10,PAID,UPI,2026-01-01

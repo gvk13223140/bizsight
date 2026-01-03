@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block navbar %}
+  {% include "partials/navbar.html" %}
+{% endblock %}
+
+{% block content %}
+<h2>Preview Imported Data</h2>
+
+{% if rows %}
+  <table class="invoice-table">
+    <thead>
+      <tr><th>Item</th><th>Quantity</th><th>Price</th></tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>{{ row.item_name }}</td>
+          <td>{{ row.quantity }}</td>
+          <td>{{ row.price }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <form method="post" action="{% url 'confirm_import' %}">
+    {% csrf_token %}
+    <input type="hidden" name="rows_json" value="{{ rows|json_script:'rows-data' }}">
+    <button class="btn btn-primary">Confirm Import</button>
+  </form>
+{% else %}
+  <p>No data found.</p>
+{% endif %}
+{% endblock %}

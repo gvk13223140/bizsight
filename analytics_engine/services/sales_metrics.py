@@ -1,35 +1,31 @@
-from django.db.models import Sum, Count
-from datetime import date, timedelta
-from billing.models import Bill
+from django.db.models import Sum
+from django.db.models.functions import TruncDate, TruncMonth
 
 
-def get_sales_overview(business):
-    bills = Bill.objects.filter(business=business)
-
+def get_sales_overview(bills):
     return {
-        "total_revenue": bills.filter(payment_status="PAID")
-                              .aggregate(Sum("total_amount"))["total_amount__sum"] or 0,
-
-        "total_bills": bills.count(),
-
-        "paid_bills": bills.filter(payment_status="PAID").count(),
-        "unpaid_bills": bills.filter(payment_status="UNPAID").count(),
-        "pay_later_bills": bills.filter(payment_status="PAY_LATER").count(),
+        "total_sales": bills.aggregate(Sum("total_amount"))["total_amount__sum"] or 0,
+        "bill_count": bills.count(),
+        "paid": bills.filter(payment_status="PAID").count(),
+        "unpaid": bills.exclude(payment_status="PAID").count(),
     }
 
 
-def get_sales_by_day(business, days=7):
-    today = date.today()
-    start_date = today - timedelta(days=days)
-
-    bills = (
-        Bill.objects.filter(
-            business=business,
-            created_at__date__gte=start_date
-        )
-        .values("created_at__date")
+def get_sales_by_day(bills):
+    return (
+        bills
+        .annotate(label=TruncDate("created_at"))
+        .values("label")
         .annotate(total=Sum("total_amount"))
-        .order_by("created_at__date")
+        .order_by("label")
     )
 
-    return list(bills)
+
+def get_sales_by_month(bills):
+    return (
+        bills
+        .annotate(label=TruncMonth("created_at"))
+        .values("label")
+        .annotate(total=Sum("total_amount"))
+        .order_by("label")
+    )

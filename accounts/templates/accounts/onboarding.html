@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Onboarding | BizSight{% endblock %}
+{% block navbar %}
+  {% include "partials/navbar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="onboarding-wrapper">
+  <h2>Welcome {{ request.user.username }} 🙏</h2>
+  <p>Let’s set up your business profile:</p>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-fields">
+      {{ form.as_p }}
+    </div>
+    <button type="submit" class="btn-primary">Save and Continue</button>
+  </form>
+</div>
+
+<style>
+.onboarding-wrapper {
+  max-width: 480px;
+  margin: 40px auto;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(10, 31, 68, 0.12);
+  font-family: 'Segoe UI', sans-serif;
+  color: #0A1F44;
+}
+.onboarding-wrapper h2 {
+  margin-bottom: 12px;
+}
+.form-fields p {
+  margin-bottom: 16px;
+}
+.btn-primary {
+  background: #FACC15;
+  color: #0A1F44;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+</style>
+{% endblock %}

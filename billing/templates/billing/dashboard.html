@@ -1,133 +1,158 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard | BizSight{% endblock %}
+{% block navbar %}
+  {% include "partials/navbar.html" %}
+{% endblock %}
 
 {% block content %}
 
-<h1 style="margin-bottom: 6px;">Dashboard</h1>
-<p style="color:#6B7280; margin-bottom:24px;">
-  {{ today|default:"Today" }}
-</p>
+<h1 style="color:#0A1F44; margin-bottom:8px;">Dashboard</h1>
+<p style="color:#6B7280; margin-bottom:20px;">{{ today|default:"Today" }}</p>
 
-<!-- ================= METRICS ================= -->
-<div style="display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px;">
-
-  <div class="card">
+<div class="kpi-grid">
+  <div class="card kpi-card">
     <p class="label">Today’s Sales</p>
     <h2 class="metric">₹{{ metrics.today_sales|floatformat:0 }}</h2>
   </div>
-
-  <div class="card">
+  <div class="card kpi-card">
     <p class="label">Total Bills</p>
     <h2 class="metric">{{ metrics.total_bills }}</h2>
   </div>
-
-  <div class="card">
+  <div class="card kpi-card">
     <p class="label">Paid</p>
-    <h2 class="metric" style="color:#166534;">{{ metrics.paid }}</h2>
+    <h2 class="metric paid">{{ metrics.paid }}</h2>
   </div>
-
-  <div class="card">
+  <div class="card kpi-card">
     <p class="label">Unpaid</p>
-    <h2 class="metric" style="color:#991B1B;">{{ metrics.unpaid }}</h2>
+    <h2 class="metric unpaid">{{ metrics.unpaid }}</h2>
   </div>
-
-  <div class="card">
+  <div class="card kpi-card">
     <p class="label">Pay Later</p>
-    <h2 class="metric" style="color:#92400E;">{{ metrics.pay_later }}</h2>
+    <h2 class="metric later">{{ metrics.pay_later }}</h2>
   </div>
-
 </div>
 
-<!-- ================= RECENT BILLS ================= -->
 <div class="card">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h3 style="margin:0;">Recent Bills</h3>
-    <a href="/billing/create/" class="btn btn-primary">+ New Bill</a>
+  <div class="card-header">
+    <h3>Recent Bills</h3>
+    <a href="{% url 'create_bill' %}" class="btn btn-primary">+ New Bill</a>
   </div>
 
-  <table style="width:100%; margin-top:16px; border-collapse:collapse;">
+  <table class="invoice-table">
     <thead>
-      <tr style="border-bottom:1px solid #ddd;">
-        <th align="left">Bill No</th>
-        <th align="left">Customer</th>
-        <th align="right">Amount</th>
-        <th align="center">Status</th>
+      <tr>
+        <th>Bill</th>
+        <th>Customer</th>
+        <th style="text-align:right;">Amount</th>
+        <th style="text-align:center;">Status</th>
       </tr>
     </thead>
-
     <tbody>
       {% for bill in recent_bills %}
-      <tr
-        onclick="window.location.href='/billing/bill/{{ bill.id }}/'"
-        style="border-bottom:1px solid #eee; cursor:pointer;"
-      >
+      <tr data-href="{% url 'bill_detail' bill.id %}" class="click-row">
         <td>{{ bill.bill_number }}</td>
         <td>{{ bill.customer_name|default:"Walk-in" }}</td>
-        <td align="right">₹{{ bill.total_amount|floatformat:0 }}</td>
-        <td align="center">
-          <span class="status {{ bill.payment_status }}">
+        <td style="text-align:right;">₹{{ bill.total_amount|floatformat:0 }}</td>
+        <td style="text-align:center;">
+          <span class="status {{ bill.payment_status|lower }}">
             {{ bill.status_label }}
-           </span>
-
+          </span>
         </td>
       </tr>
       {% empty %}
-      <tr>
-        <td colspan="4" style="text-align:center; padding:20px; color:#777;">
-          No bills yet.
-        </td>
-      </tr>
+      <tr><td colspan="4" style="text-align:center; color:#6B7280;">No bills yet.</td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 
-<!-- ================= STYLES ================= -->
 <style>
+.kpi-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:16px;
+  margin-bottom:32px;
+}
 .card {
-  background:white;
+  background:#fff;
   border:1px solid #E5E7EB;
-  border-radius:8px;
-  padding:16px;
+  border-radius:10px;
+  padding:18px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
 }
-
+.kpi-card {
+  text-align:center;
+  transition:transform 0.2s ease;
+}
+.kpi-card:hover { transform:translateY(-3px); }
 .label {
-  font-size:13px;
   color:#6B7280;
-  margin-bottom:6px;
-}
-
-.metric {
+  font-size:13px;
   margin:0;
-  font-size:26px;
-  font-weight:600;
 }
-
-/* STATUS BADGES */
+.metric {
+  margin-top:6px;
+  font-size:22px;
+  color:#0A1F44;
+}
+.metric.paid { color:#166534; }
+.metric.unpaid { color:#991B1B; }
+.metric.later { color:#854D0E; }
+.card-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+.invoice-table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+.invoice-table th {
+  background:#0A1F44;
+  color:#fff;
+  padding:10px;
+}
+.invoice-table td {
+  padding:8px;
+  border-bottom:1px solid #E5E7EB;
+}
+.invoice-table tr:hover {
+  background:#f9fafb;
+  cursor:pointer;
+}
 .status {
   padding:4px 10px;
   border-radius:12px;
   font-size:12px;
-  font-weight:500;
-  display:inline-block;
-  text-transform:capitalize;
+  font-weight:600;
+  text-transform:uppercase;
 }
-
-.status.paid {
-  background:#DCFCE7;
-  color:#166534;
+.status.paid { background:#DCFCE7; color:#166534; }
+.status.unpaid { background:#FEE2E2; color:#991B1B; }
+.status.pay_later { background:#FEF9C3; color:#854D0E; }
+.btn {
+  padding:6px 12px;
+  border-radius:6px;
+  font-weight:600;
+  text-decoration:none;
 }
-
-.status.unpaid {
-  background:#FEE2E2;
-  color:#991B1B;
+.btn-primary {
+  background:#0A1F44;
+  color:#fff;
 }
-
-.status.pay_later {
-  background:#FEF3C7;
-  color:#92400E;
-}
+.btn-primary:hover { background:#14356b; }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".click-row").forEach(row => {
+    row.addEventListener("click", () => {
+      window.location = row.dataset.href;
+    });
+  });
+});
+</script>
 
 {% endblock %}

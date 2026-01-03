@@ -1,0 +1,712 @@
+{% extends "base.html" %}
+{% block title %}Analytics | BizSight{% endblock %}
+{% block navbar %}
+  {% include "partials/navbar.html" %}
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:20px;">
+  <div class="dropdown" style="display:inline-block;position:relative;">
+    <button class="btn btn-primary">Download</button>
+    <div class="dropdown-menu" style="
+        position:absolute;
+        background:#fff;
+        border:1px solid #ddd;
+        border-radius:6px;
+        box-shadow:0 4px 12px rgba(0,0,0,0.08);
+        display:none;
+        min-width:160px;
+        z-index:1000;">
+      <a href="{% url 'download_sales_csv' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="dropdown-item">CSV</a>
+      <a href="{% url 'download_sales_excel' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="dropdown-item">Excel</a>
+      <a href="{% url 'download_sales_pdf' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="dropdown-item">PDF</a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dropdown-menu a {
+    display:block;
+    padding:8px 12px;
+    color:#0A1F44;
+    text-decoration:none;
+  }
+  .dropdown-menu a:hover {
+    background:#eef2f9;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const btn = document.querySelector(".dropdown .btn");
+    const menu = document.querySelector(".dropdown-menu");
+    btn.addEventListener("click", function() {
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
+    document.addEventListener("click", function(e) {
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.style.display = "none";
+      }
+    });
+  });
+</script>
+
+<h1 style="color:#0A1F44; margin-bottom:8px;">Analytics</h1>
+<p style="color:#6B7280; margin-bottom:20px;">Sales insights & trends</p>
+
+<style>
+  .card {
+    padding: 20px;
+    background: #F9F6F1;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+  }
+  .card h3 {
+    margin-bottom: 12px;
+    color: #0A1F44;
+  }
+  .btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary {
+    background-color: #0A1F44;
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background-color: #14356b;
+  }
+  .btn-secondary {
+    background-color: #e6ecf5;
+    color: #0A1F44;
+  }
+  .btn-secondary:hover {
+    background-color: #d0d7e6;
+  }
+  .invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .invoice-table th {
+    background-color: #0A1F44;
+    color: #fff;
+    padding: 10px;
+    text-align: left;
+  }
+  .invoice-table td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+  }
+  .invoice-table tr:hover {
+    background-color: #eef2f9;
+  }
+  /* KPI cards */
+  .kpi-card {
+    text-align: center;
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+  }
+  .kpi-card:hover {
+    transform: translateY(-3px);
+  }
+  .kpi-card p {
+    margin: 0;
+    color: #6B7280;
+    font-size: 13px;
+  }
+  .kpi-card h2 {
+    margin: 6px 0 0;
+    color: #0A1F44;
+    font-size: 20px;
+  }
+  /* Insights list */
+  .card ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  .card ul li {
+    padding: 6px 0;
+    border-bottom: 1px solid #ddd;
+    color: #333;
+  }
+</style>
+<form method="post" action="{% url 'import_google_sheet' %}" style="margin-bottom:20px;">
+  {% csrf_token %}
+  <input type="url" name="sheet_url" placeholder="Paste Google Sheet link" class="form-input">
+  <button type="submit" class="btn btn-primary">Import from Google Sheet</button>
+</form>
+
+<form method="post" action="{% url 'import_csv_file' %}" enctype="multipart/form-data" style="margin-bottom:20px;">
+  {% csrf_token %}
+  <input type="file" name="csv_file" accept=".csv" class="form-input">
+  <button type="submit" class="btn btn-secondary">Upload CSV File</button>
+</form>
+
+<form method="get" style="display:flex;gap:12px;margin-bottom:20px;">
+  <input type="date" name="from_date" value="{{ from_date }}">
+  <input type="date" name="to_date" value="{{ to_date }}">
+  <button class="btn btn-primary">Apply</button>
+</form>
+
+<form method="get" style="margin-bottom:16px;">
+  <input type="hidden" name="from_date" value="{{ from_date }}">
+  <input type="hidden" name="to_date" value="{{ to_date }}">
+  <button name="group" value="day" class="btn btn-secondary">Daily</button>
+  <button name="group" value="month" class="btn btn-secondary">Monthly</button>
+</form>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
+  <div class="kpi-card"><p>Total Sales</p><h2>₹{{ overview.total_sales|floatformat:0 }}</h2></div>
+  <div class="kpi-card"><p>Bills</p><h2>{{ overview.bill_count }}</h2></div>
+  <div class="kpi-card"><p>Paid</p><h2>{{ overview.paid }}</h2></div>
+  <div class="kpi-card"><p>Unpaid</p><h2>{{ overview.unpaid }}</h2></div>
+</div>
+
+<div class="card">
+  <h3>Sales Trend</h3>
+  <canvas id="salesChart"></canvas>
+</div>
+
+<div class="card">
+  <h3>Top Selling Items</h3>
+  <table class="invoice-table">
+    <tr><th>Item</th><th>Qty</th><th>Revenue</th></tr>
+    {% for item in top_items %}
+    <tr>
+      <td>{{ item.item_name }}</td>
+      <td>{{ item.qty }}</td>
+      <td>₹{{ item.revenue|floatformat:0 }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="3">No data</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h3>Smart Insights</h3>
+  <ul>
+    {% for insight in insights %}
+      <li>{{ insight }}</li>
+    {% empty %}
+      <li>No insights available</li>
+    {% endfor %}
+  </ul>
+</div>
+
+{{ chart_labels|json_script:"labels" }}
+{{ chart_values|json_script:"values" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const labels = JSON.parse(document.getElementById("labels").textContent);
+const values = JSON.parse(document.getElementById("values").textContent);
+
+new Chart(document.getElementById("salesChart"), {
+  type: "line",
+  data: {
+    labels: labels,
+    datasets: [{
+      label: "Sales",
+      data: values,
+      borderColor: "#0A1F44",
+      backgroundColor: "rgba(10,31,68,0.1)",
+      borderWidth: 2,
+      tension: 0.3,
+      fill: true
+    }]
+  },
+  options: {
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: { beginAtZero: true }
+    }
+  }
+});
+</script>
+
+{% endblock %}
+from django.urls import path
+from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = [
+    # Dashboard
+    path("", views.dashboard_view, name="dashboard"),
+
+    # Bills CRUD
+    path("create/", views.create_bill_view, name="create_bill"),
+    path("bill/<int:bill_id>/", views.bill_detail_view, name="bill_detail"),
+    path("bill/<int:bill_id>/download/", views.download_bill_pdf, name="download_bill_pdf"),
+    path("bill/<int:bill_id>/delete/", views.delete_bill_view, name="delete_bill"),
+    path("bill/<int:bill_id>/mark-paid/", views.mark_bill_paid, name="mark_bill_paid"),
+
+    # Bills list + bulk delete
+    path("bills/", views.bills_list_view, name="bills_list"),
+    path("bills/bulk-delete/", views.bulk_delete_bills_view, name="bulk_delete_bills"),
+
+    # Analytics
+    path("analytics/", views.analytics_dashboard_view, name="analytics"),
+
+    # Import
+    path("import/google-sheet/", views.import_google_sheet_view, name="import_google_sheet"),
+    path("import-csv/", views.import_csv_file_view, name="import_csv_file"),
+
+    # Export
+    path("download/csv/", views.download_sales_csv, name="download_sales_csv"),
+    path("download/excel/", views.download_sales_excel, name="download_sales_excel"),
+    path("download/pdf/", views.download_sales_pdf, name="download_sales_pdf"),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+def extract_sheet_csv_url(sheet_url: str) -> str:
+    if "export?format=csv" in sheet_url:
+        return sheet_url
+    try:
+        sheet_id = sheet_url.split("/d/")[1].split("/")[0]
+        return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+    except Exception:
+        return sheet_url
+
+def import_google_sheet_view(request):
+    if request.method != "POST":
+        return redirect("analytics")
+    business = get_current_business(request)
+    if not business:
+        messages.error(request, "Please login to continue")
+        return redirect("onboarding")
+
+
+    sheet_url = request.POST.get("sheet_url")
+    if not sheet_url:
+        messages.error(request, "No sheet URL provided")
+        return redirect("analytics")
+
+    try:
+        csv_url = extract_sheet_csv_url(sheet_url)
+        response = requests.get(csv_url)
+        response.raise_for_status()
+    except Exception as e:
+        messages.error(request, f"Invalid or private Google Sheet: {e}")
+        return redirect("analytics")
+
+    reader = csv.DictReader(StringIO(response.text))
+
+    print("CSV HEADERS:", reader.fieldnames)
+
+    reader.fieldnames = [h.strip().lower() for h in reader.fieldnames]
+    print("Normalized HEADERS:", reader.fieldnames)
+
+
+    bills_created, errors = 0, []
+
+    for idx, row in enumerate(reader, start=1):
+        try:
+            qty = int(row["quantity"])
+            price = float(row["price"])
+            discount = float(row.get("discount", 0))
+            total = (qty * price) - discount
+
+            bill = Bill.objects.create(
+                business=business,
+                customer_name=row.get("customer_name") or "Imported (Google Sheet)",
+                customer_phone=row.get("customer_phone"),
+                customer_email=row.get("customer_email"),
+                subtotal=qty * price,
+                discount=discount,
+                total_amount=total,
+                payment_status=row.get("payment_status", "Pending"),
+                created_at=timezone.now(),
+            )
+
+            BillItem.objects.create(
+                bill=bill,
+                item_name=row["item_name"],
+                quantity=qty,
+                price=price,
+                total=qty * price,
+            )
+
+            bills_created += 1
+
+        except Exception as e:
+            errors.append(f"Row {idx} failed: {e}")
+            continue
+
+    if bills_created > 0:
+        messages.success(request, f"Imported {bills_created} rows successfully")
+    else:
+        messages.error(request, f"No rows imported. Errors: {errors[:3]}...")
+
+    return redirect("analytics")
+
+
+
+logger = logging.getLogger(__name__)
+@login_required
+def import_csv_file_view(request):
+    if request.method != "POST":
+        return redirect("analytics")
+    business = get_current_business(request)
+    if not business:
+        messages.error(request, "Please login to continue")
+        return redirect("onboarding")
+
+    csv_file = request.FILES.get("csv_file")
+    if not csv_file:
+        messages.error(request, "Please upload a CSV file")
+        return redirect("analytics")
+
+    try:
+        decoded_file = csv_file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(decoded_file)
+        reader.fieldnames = [h.strip() for h in reader.fieldnames]
+    except Exception as e:
+        messages.error(request, f"Invalid CSV format: {e}")
+        return redirect("analytics")
+
+    bills_created = 0
+    failed_rows = []
+
+    year = timezone.now().year
+    business_name = business.name.replace(" ", "").upper()
+    sequence = Bill.objects.filter(business=business, created_at__year=year).count()
+
+    for row in reader:
+        try:
+            qty = int((row.get("quantity") or "0").strip())
+            price = float((row.get("price") or "0").strip())
+            total = qty * price
+            discount = float((row.get("discount") or "0").strip())
+
+            bill_date = None
+            if row.get("date"):
+                try:
+                    naive_date = datetime.strptime(row["date"].strip(), "%Y-%m-%d")
+                    bill_date = timezone.make_aware(naive_date, timezone.get_current_timezone())
+                except Exception as e:
+                    logger.warning(f"Invalid date in row {row}: {e}")
+                    bill_date = None
+
+            sequence += 1
+            bill_number = f"BS_{year}_{business_name}-{sequence:06d}"
+
+            bill = Bill.objects.create(
+                business=business,
+                bill_number=bill_number,
+                customer_name=(row.get("customer_name") or "Imported").strip(),
+                customer_phone=(row.get("customer_phone") or "").strip(),
+                customer_email=(row.get("customer_email") or "").strip(),
+                subtotal=total,
+                discount=discount,
+                total_amount=max(total - discount, 0),
+                payment_status=(row.get("payment_status") or "UNPAID").strip().upper(),
+                created_at=bill_date or timezone.now(),
+            )
+
+            BillItem.objects.create(
+                bill=bill,
+                item_name=(row.get("item_name") or "").strip(),
+                quantity=qty,
+                price=price,
+                total=total,
+            )
+
+            if bill.payment_status == "PAID":
+                Payment.objects.create(
+                    bill=bill,
+                    method=(row.get("payment_mode") or "CASH").strip(),
+                    reference_id=None
+                )
+
+            bills_created += 1
+
+        except Exception as e:
+            failed_rows.append({"row": row, "error": str(e)})
+            logger.error(f"Row failed: {row} | Error: {e}")
+            continue
+
+    if bills_created > 0:
+        messages.success(request, f"Imported {bills_created} rows successfully")
+    if failed_rows:
+        messages.warning(request, f"{len(failed_rows)} rows failed. Check logs for details.")
+
+    return redirect("analytics")
+
+
+
+@login_required
+def bulk_delete_bills_view(request):
+    business = get_current_business(request)
+    if not business:
+        return redirect("onboarding")
+
+    if request.method == "POST":
+        bill_ids = request.POST.getlist("bill_ids")
+        if bill_ids:
+            Bill.objects.filter(id__in=bill_ids, business=business).update(is_deleted=True)
+            messages.success(request, f"Deleted {len(bill_ids)} bills successfully")
+        else:
+            messages.warning(request, "No bills selected")
+
+    return redirect("bills_list")
+
+
+def preview_import_view(request):
+    business = get_current_business(request)
+    if not business:
+        return redirect("onboarding")
+
+    rows = []
+    if request.method == "POST":
+        sheet_url = request.POST.get("sheet_url")
+        if sheet_url:
+            try:
+                sheet_id = sheet_url.split("/d/")[1].split("/")[0]
+                csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+                response = requests.get(csv_url)
+                response.raise_for_status()
+                reader = csv.DictReader(StringIO(response.text))
+                rows = list(reader)
+            except Exception:
+                messages.error(request, "Invalid or private Google Sheet")
+                return redirect("analytics")
+
+        elif request.FILES.get("csv_file"):
+            try:
+                decoded_file = request.FILES["csv_file"].read().decode("utf-8").splitlines()
+                reader = csv.DictReader(decoded_file)
+                rows = list(reader)
+            except Exception:
+                messages.error(request, "Invalid CSV file")
+                return redirect("analytics")
+
+    return render(request, "billing/preview_import.html", {"rows": rows})
+import json
+
+def confirm_import_view(request):
+    business = get_current_business(request)
+    if not business:
+        return redirect("onboarding")
+
+    if request.method == "POST":
+        rows = json.loads(request.POST.get("rows_json", "[]"))
+        bills_created = 0
+
+        for row in rows:
+            try:
+                qty = int(row["quantity"])
+                price = float(row["price"])
+                total = qty * price
+
+                bill = Bill.objects.create(
+                    business=business,
+                    customer_name="Imported",
+                    subtotal=total,
+                    discount=0,
+                    total_amount=total,
+                    payment_status="PAID",
+                )
+                BillItem.objects.create(
+                    bill=bill,
+                    item_name=row["item_name"],
+                    quantity=qty,
+                    price=price,
+                    total=total,
+                )
+                bills_created += 1
+            except Exception:
+                continue
+
+        messages.success(request, f"Imported {bills_created} rows successfully")
+        return redirect("analytics")
+
+
+def download_sales_excel(request):
+    business = get_current_business(request)
+    if not business:
+        return redirect("onboarding")
+
+    bills = Bill.objects.filter(business=business)
+    bills = filter_bills_by_date(request, bills)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sales Report"
+
+    ws.append([
+        "Bill Number", "Date", "Customer",
+        "Subtotal", "Discount", "Total", "Status"
+    ])
+
+    for bill in bills:
+        ws.append([
+            bill.bill_number,
+            bill.created_at.strftime("%Y-%m-%d"),
+            bill.customer_name or "Walk-in",
+            float(bill.subtotal),
+            float(bill.discount),
+            float(bill.total_amount),
+            bill.payment_status,
+        ])
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    response = HttpResponse(
+        output.read(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="BS_{timezone.now().year}_{business.name}_sales.xlsx"'
+    return response
+
+def download_sales_csv(request):
+    business = get_current_business(request)
+    if not business:
+        messages.error(request, "Please login to continue")
+        return redirect("onboarding")
+
+    bills = Bill.objects.filter(business=business)
+    bills = filter_bills_by_date(request, bills)
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="BS_{timezone.now().year}_{business.name}_sales.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "Bill Number", "Date", "Customer",
+        "Subtotal", "Discount", "Total", "Status"
+    ])
+
+    for bill in bills:
+        writer.writerow([
+            bill.bill_number,
+            bill.created_at.strftime("%Y-%m-%d"),
+            bill.customer_name or "Walk-in",
+            bill.subtotal,
+            bill.discount,
+            bill.total_amount,
+            bill.payment_status,
+        ])
+
+    return response
+
+def download_sales_pdf(request):
+    business = get_current_business(request)
+    if not business:
+        messages.error(request, "Please login to continue")
+        return redirect("onboarding")
+
+    bills = Bill.objects.filter(business=business)
+    bills = filter_bills_by_date(request, bills)
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="BS_{timezone.now().year}_{business.name}_sales.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(
+        Paragraph(
+            f"<b>BizSight Sales Report</b><br/>{business.name}",
+            styles["Title"],
+        )
+    )
+    elements.append(Spacer(1, 12))
+
+    table_data = [["Bill", "Date", "Customer", "Total", "Status"]]
+
+    for bill in bills:
+        table_data.append([
+            bill.bill_number,
+            bill.created_at.strftime("%d-%m-%Y"),
+            bill.customer_name or "Walk-in",
+            f"₹{bill.total_amount}",
+            bill.payment_status,
+        ])
+
+    elements.append(Table(table_data))
+    doc.build(elements)
+
+    return response
+
+def delete_bill_view(request, bill_id):
+    business = get_current_business(request)
+
+    bill = get_object_or_404(
+        Bill,
+        id=bill_id,
+        business=business,
+        is_deleted=False
+    )
+
+    bill.is_deleted = True
+    bill.deleted_at = timezone.now()
+    bill.save(update_fields=["is_deleted", "deleted_at"])
+
+    messages.success(request, "Bill deleted")
+    return redirect("bills_list")
+
+def analytics_dashboard_view(request):
+    business = get_current_business(request)
+    if not business:
+        return redirect("/accounts/login/")
+
+    from_date = request.GET.get("from_date")
+    to_date = request.GET.get("to_date")
+    group = request.GET.get("group", "day")
+
+    bills = Bill.objects.filter(
+        business=business,
+        is_deleted=False
+    )
+
+    if from_date and from_date.lower() != "none":
+        try:
+            parsed_from = datetime.strptime(from_date, "%Y-%m-%d").date()
+            bills = bills.filter(created_at__date__gte=parsed_from)
+        except ValueError:
+            pass
+
+    if to_date and to_date.lower() != "none":
+        try:
+            parsed_to = datetime.strptime(to_date, "%Y-%m-%d").date()
+            bills = bills.filter(created_at__date__lte=parsed_to)
+        except ValueError:
+            pass
+
+    overview = get_sales_overview(bills)
+
+    sales_trend = (
+        get_sales_by_month(bills)
+        if group == "month"
+        else get_sales_by_day(bills)
+    )
+
+    context = {
+        "overview": overview,
+        "top_items": get_top_items(bills),
+        "insights": get_smart_insights(bills),
+        "chart_labels": [str(r["label"]) for r in sales_trend],
+        "chart_values": [float(r["total"]) for r in sales_trend],
+        "from_date": from_date if from_date and from_date.lower() != "none" else "",
+        "to_date": to_date if to_date and to_date.lower() != "none" else "",
+        "group": group,
+    }
+
+    return render(request, "billing/analytics.html", context)

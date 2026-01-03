@@ -1,0 +1,22 @@
+{% extends "bizmitra/base_bizmitra.html" %}
+
+{% block bizmitra_content %}
+<div class="intro">
+
+  <h1>BizMitra</h1>
+  <p>
+    BizMitra continuously observes your business data and
+    helps you understand performance, risks, and opportunities.
+  </p>
+
+  <div class="actions">
+    <a href="{% url 'bizmitra:dashboard' %}" class="btn-primary">
+      View Insights
+    </a>
+    <a href="{% url 'bizmitra:chat' %}" class="btn-secondary">
+      Ask BizMitra
+    </a>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Signup | BizSight{% endblock %}
+{% block navbar %}
+  {% include "partials/navbar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="signup-wrapper">
+
+  <div class="signup-card">
+    <div class="logo-container">
+      <img src="{% static 'bizsight_logo.png' %}" alt="BizSight Logo" class="biz-logo">
+    </div>
+
+    <h2>Create Your BizSight Account</h2>
+    <p class="subtitle">Sign up to start managing your business</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'signup' %}">
+      {% csrf_token %}
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="Enter email" required>
+      </div>
+
+      <div class="field">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Choose a username" required>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Create a password" required>
+      </div>
+
+      <button type="submit" class="btn-primary full" aria-label="Sign Up">
+        Sign Up
+      </button>
+    </form>
+
+    <p class="switch-auth">
+      Already have an account?
+      <a href="{% url 'login' %}">Login here</a>
+    </p>
+  </div>
+
+</div>
+
+<style>
+.signup-wrapper {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(10, 31, 68, 0.12);
+}
+
+.signup-card h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #0A1F44;
+}
+
+.subtitle {
+  margin-top: 6px;
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.alert {
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+.field {
+  margin-top: 12px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #0A1F44;
+}
+
+.field input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #D1D5DB;
+  font-size: 14px;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: #0A1F44;
+}
+
+.btn-primary.full {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  font-size: 15px;
+}
+
+.switch-auth {
+  margin-top: 16px;
+  font-size: 13px;
+  text-align: center;
+  color: #6B7280;
+}
+
+.switch-auth a {
+  color: #0A1F44;
+  font-weight: 600;
+  text-decoration: none;
+}
+.switch-auth a:hover {
+  text-decoration: underline;
+}
+
+.logo-container {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.biz-logo {
+  width: 120px;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+</style>
+{% endblock %}

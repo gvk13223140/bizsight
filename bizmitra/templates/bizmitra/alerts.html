@@ -1,0 +1,45 @@
+{% extends "bizmitra/base_bizmitra.html" %}
+
+{% block bizmitra_content %}
+
+<div class="companion-banner">
+  Smart Alerts • Proactive Monitoring
+</div>
+
+<div class="bizmitra-container">
+
+  <div class="header">
+    <h1 class="title">Business Alerts</h1>
+    <p class="subtitle">
+      Important conditions detected from your billing data.
+      Alerts are informational and read-only.
+    </p>
+  </div>
+
+  <div class="insights-grid">
+
+    {% if alerts %}
+      {% for alert in alerts %}
+        <div class="insight-card {{ alert.level }}">
+          <div class="insight-header">
+            <h3>{{ alert.title }}</h3>
+            <span class="badge {{ alert.level }}">{{ alert.level|title }}</span>
+          </div>
+          <p>{{ alert.message }}</p>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="insight-card neutral">
+        <div class="insight-header">
+          <h3>No Critical Alerts</h3>
+          <span class="badge neutral">Normal</span>
+        </div>
+        <p>Your business is currently operating within normal parameters.</p>
+      </div>
+    {% endif %}
+
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% load static %}
+{% block navbar %}
+  {% include "partials/navbar.html" %}
+{% endblock %}
+
+{% block title %}Login | BizSight{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+
+  <div class="login-card">
+    <div class="logo-container">
+      <img src="{% static 'bizsight_logo.png' %}" alt="BizSight Logo" class="biz-logo">
+    </div>
+
+    <h2>Welcome to BizSight</h2>
+    <p class="subtitle">Sign in to manage your business</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- OAuth section (disabled for now) -->
+    <div class="social-login">
+      <button type="button" class="btn btn-google" disabled>
+        Continue with Google (coming soon)
+      </button>
+    </div>
+
+    <div class="divider">
+      <span>or</span>
+    </div>
+
+    <!-- Username/password login -->
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+
+      <div class="field">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Enter username" required>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter password" required>
+      </div>
+
+      <button type="submit" class="btn-primary full" aria-label="Login">
+        Login
+      </button>
+    </form>
+
+    <!-- Signup link -->
+    <p class="switch-auth">
+      Don’t have an account?
+      <a href="{% url 'signup' %}">Sign up here</a>
+    </p>
+
+    <!-- Demo accounts -->
+    <div class="demo">
+      <button type="button" class="btn-secondary full" id="demoToggle">
+        Try demo accounts
+      </button>
+
+      <div id="demoList" class="demo-list" hidden>
+        <p class="demo-note">Use these demo credentials:</p>
+        <div class="demo-pair"><code>biz1</code> / <code>biz1@123</code></div>
+        <div class="demo-pair"><code>biz2</code> / <code>biz2@123</code></div>
+        <div class="demo-pair"><code>biz3</code> / <code>biz3@123</code></div>
+        <div class="demo-pair"><code>biz4</code> / <code>biz4@123</code></div>
+
+        <div class="demo-actions">
+          <button type="button" class="btn-mini" data-username="biz1" data-password="biz1@123">Autofill biz1</button>
+          <button type="button" class="btn-mini" data-username="biz2" data-password="biz2@123">Autofill biz2</button>
+          <button type="button" class="btn-mini" data-username="biz3" data-password="biz3@123">Autofill biz3</button>
+          <button type="button" class="btn-mini" data-username="biz4" data-password="biz4@123">Autofill biz4</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.login-wrapper {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(10, 31, 68, 0.12);
+}
+
+.login-card h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #0A1F44;
+}
+
+.subtitle {
+  margin-top: 6px;
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.alert {
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+.social-login {
+  margin-top: 18px;
+}
+
+.btn-google {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  background: #ffffff;
+  color: #0A1F44;
+  border: 1px solid #D1D5DB;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: #6B7280;
+  font-size: 12px;
+}
+.divider::before, .divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #E5E7EB;
+}
+
+.field {
+  margin-top: 12px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #0A1F44;
+}
+
+.field input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #D1D5DB;
+  font-size: 14px;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: #0A1F44;
+}
+
+.btn-primary.full {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  font-size: 15px;
+}
+
+.switch-auth {
+  margin-top: 16px;
+  font-size: 13px;
+  text-align: center;
+  color: #6B7280;
+}
+
+.switch-auth a {
+  color: #0A1F44;
+  font-weight: 600;
+  text-decoration: none;
+}
+.switch-auth a:hover {
+  text-decoration: underline;
+}
+
+.demo {
+  margin-top: 20px;
+}
+
+.btn-secondary.full {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #F3F4F6;
+  color: #0A1F44;
+  border: 1px solid #E5E7EB;
+}
+
+.demo-list {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #6B7280;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.demo-note {
+  margin: 0 0 8px 0;
+}
+
+.demo-pair code {
+  background: #F1EFEA;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: #0A1F44;
+}
+
+.demo-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.btn-mini {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0A1F44;
+  border: 1px solid #D1D5DB;
+  cursor: pointer;
+}
+.btn-mini:hover {
+  border-color: #0A1F44;
+}
+
+.logo-container {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.biz-logo {
+  width: 120px;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+</style>
+
+<script>
+  (function() {
+    const toggle = document.getElementById('demoToggle');
+    const list = document.getElementById('demoList');
+    const inputs = {
+      username: document.querySelector('input[name="username"]'),
+      password: document.querySelector('input[name="password"]')
+    };
+
+    if (toggle) {
+      toggle.addEventListener('click', function() {
+        list.hidden = !list.hidden;
+      });
+    }
+
+    document.querySelectorAll('.btn-mini').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const u = this.getAttribute('data-username');
+        const p = this.getAttribute('data-password');
+        if (inputs.username && inputs.password) {
+          inputs.username.value = u;
+          inputs.password.value = p;
+        }
+      });
+    });
+  })();
+</script>
+
+{% endblock %}

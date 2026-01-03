@@ -1,16 +1,95 @@
+{% load static %}
+
 <nav class="navbar">
   <div class="nav-container">
 
-    <div class="brand">
-      BizSight
-    </div>
+    <a href="{% url 'business_dashboard' %}" class="brand">
+      <img src="{% static 'bizsight_logo.png' %}" alt="BizSight Logo" class="logo">
+      <span class="brand-text">BizSight</span>
+    </a>
+
 
     <div class="nav-right">
       <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
       <a href="{% url 'create_bill' %}" class="nav-link">Create Bill</a>
       <a href="{% url 'bills_list' %}" class="nav-link">Bills</a>
       <a href="{% url 'analytics' %}" class="nav-link">Analytics</a>
+      <a href="{% url 'business_profile' %}" class="nav-link">Business</a>
+      <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+
+      <a href="{% url 'bizmitra:dashboard' %}" class="toggle-btn">
+        BizMitra
+      </a>
     </div>
 
   </div>
 </nav>
+
+<style>
+.navbar {
+  background: #0A1F44;
+  color: #fff;
+  padding: 12px 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+.brand:hover {
+  color: #F9F6F1;
+}
+.brand .logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  transition: transform 0.3s ease;
+}
+.brand .logo:hover {
+  transform: scale(1.05);
+}
+
+.nav-right {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.nav-link {
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+.nav-link:hover {
+  color: #F9F6F1;
+}
+
+.toggle-btn {
+  background: #F9F6F1;
+  color: #0A1F44;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+.toggle-btn:hover {
+  background: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+</style>

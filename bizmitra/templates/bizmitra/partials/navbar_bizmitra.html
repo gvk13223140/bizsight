@@ -1,0 +1,78 @@
+{% load static %}
+
+<nav class="bizmitra-navbar">
+  <div class="nav-left">
+    <a href="{% url 'bizmitra:dashboard' %}" class="brand">
+      <img src="{% static 'bizmitra_logo.png' %}" alt="BizMitra Logo" class="logo">
+      <span class="brand-text">BizMitra</span>
+      <span class="mode">Companion Mode</span>
+      </a>
+  </div>
+  <div class="nav-center">
+    <a href="{% url 'bizmitra:dashboard' %}">Dashboard</a>
+    <a href="{% url 'bizmitra:chat' %}">Guided Chat</a>
+    <a href="{% url 'bizmitra:alerts' %}">Alerts</a>
+  </div>
+
+  <div class="nav-right">
+    <a href="{% url 'dashboard' %}" class="toggle-back">
+      Back to BizSight
+    </a>
+  </div>
+</nav>
+
+<style>
+.bizmitra-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background: #0A1F44;
+  color: #F9F6F1;
+}
+.brand .logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  transition: transform 0.3s ease;
+}
+.brand .logo:hover {
+  transform: scale(1.05);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+.bizmitra-navbar a {
+  color: #F9F6F1;
+  text-decoration: none;
+  margin: 0 10px;
+  font-weight: 500;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.mode {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-left: 8px;
+}
+
+.toggle-back {
+  background: #F9F6F1;
+  color: #0A1F44 !important;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+}
+</style>

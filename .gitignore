@@ -1,25 +1,41 @@
-firebase_key.json
+# ========================
 # Python
+# ========================
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.env
+
+# ========================
+# Virtual Environment
+# ========================
 venv/
+.env
 .env.*
 
+# ========================
 # Django
+# ========================
 db.sqlite3
 media/
 staticfiles/
 
-# Firebase
+# ========================
+# Firebase / Secrets
+# ========================
 firebase_key.json
 
-# IDE
+# ========================
+# IDEs
+# ========================
 .vscode/
 .idea/
 
-# OS
+# ========================
+# OS Files
+# ========================
 .DS_Store
 Thumbs.db
+risk_data.csv
+s.py
+certs/

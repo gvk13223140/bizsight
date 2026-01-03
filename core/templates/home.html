@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}BizSight | Home{% endblock %}
+{% block navbar %}
+  {% include "partials/navbar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="home-wrapper">
+
+  <section class="hero">
+    <div class="hero-content">
+      <img src="{% static 'bizsight_logo.png' %}" alt="BizSight Logo" class="logo">
+      <h1>Welcome to <span class="highlight">BizSight</span></h1>
+      <p class="subtitle">Your trusted companion for smart business insights</p>
+      <div class="hero-actions">
+        <a href="/accounts/login/" class="btn-primary">Get Started</a>
+        <a href="/accounts/login/" class="btn-secondary">Try Demo</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="features">
+    <h2>Why BizSight?</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <img src="{% static 'analytics.png' %}" alt="Analytics">
+        <h3>Smart Analytics</h3>
+        <p>Track sales, revenue, and growth with clear dashboards.</p>
+      </div>
+      <div class="feature-card">
+        <img src="{% static 'security.png' %}" alt="Security">
+        <h3>Secure Login</h3>
+        <p>Sign in with your BizSight account — safe and simple. Google login coming soon.</p>
+      </div>
+      <div class="feature-card">
+        <img src="{% static 'insights.png' %}" alt="Insights">
+        <h3>Actionable Insights</h3>
+        <p>Turn raw data into decisions that grow your business.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<style>
+.home-wrapper {
+  font-family: 'Segoe UI', sans-serif;
+  color: #0A1F44;
+}
+
+.hero {
+  background: linear-gradient(135deg, #0A1F44, #1E3A8A);
+  color: #fff;
+  text-align: center;
+  padding: 80px 20px;
+  border-radius: 0 0 40px 40px;
+  box-shadow: 0 10px 30px rgba(10,31,68,0.3);
+}
+.hero .logo {
+  width: 120px;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-size: 42px;
+  margin: 0;
+}
+.hero .highlight {
+  color: #FACC15;
+}
+.hero .subtitle {
+  margin-top: 10px;
+  font-size: 18px;
+  color: #E5E7EB;
+}
+.hero-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+.btn-primary {
+  background: #FACC15;
+  color: #0A1F44;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-decoration: none;
+}
+.btn-secondary {
+  background: #fff;
+  color: #0A1F44;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid #D1D5DB;
+  text-decoration: none;
+}
+
+/* Features */
+.features {
+  padding: 60px 20px;
+  text-align: center;
+}
+.features h2 {
+  font-size: 28px;
+  margin-bottom: 40px;
+}
+.feature-grid {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.feature-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  width: 280px;
+  box-shadow: 0 10px 20px rgba(10,31,68,0.1);
+  text-align: center;
+}
+.feature-card img {
+  width: 48px;
+  margin-bottom: 16px;
+}
+.feature-card h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #0A1F44;
+}
+.feature-card p {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #6B7280;
+}
+
+/* Footer */
+.footer {
+  background: #F9FAFB;
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+  color: #6B7280;
+  margin-top: 40px;
+}
+</style>
+{% endblock %}

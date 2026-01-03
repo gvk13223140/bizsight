@@ -1,48 +1,17 @@
-from datetime import date, timedelta
-from django.db.models import Sum
-from billing.models import Bill
-
-
-def get_smart_insights(business):
+def get_smart_insights(bills):
     insights = []
 
-    today = date.today()
-    last_week = today - timedelta(days=7)
-    prev_week = today - timedelta(days=14)
+    total = bills.count()
+    unpaid = bills.exclude(payment_status="PAID").count()
 
-    last_week_sales = Bill.objects.filter(
-        business=business,
-        created_at__date__gte=last_week,
-        payment_status="PAID"
-    ).aggregate(Sum("total_amount"))["total_amount__sum"] or 0
+    if total == 0:
+        return ["No sales data available yet"]
 
-    prev_week_sales = Bill.objects.filter(
-        business=business,
-        created_at__date__range=(prev_week, last_week),
-        payment_status="PAID"
-    ).aggregate(Sum("total_amount"))["total_amount__sum"] or 0
+    if unpaid > total * 0.3:
+        insights.append("⚠ High number of unpaid bills")
 
-    if prev_week_sales > 0:
-        change = ((last_week_sales - prev_week_sales) / prev_week_sales) * 100
+    big_bills = bills.filter(total_amount__gte=5000).count()
+    if big_bills:
+        insights.append(f"💰 {big_bills} high-value bills above ₹5,000")
 
-        if change < -10:
-            insights.append(
-                f"⚠ Sales dropped by {abs(round(change,1))}% compared to last week"
-            )
-        elif change > 10:
-            insights.append(
-                f"📈 Sales increased by {round(change,1)}% compared to last week"
-            )
-
-    unpaid_count = Bill.objects.filter(
-        business=business,
-        payment_status="UNPAID"
-    ).count()
-
-    if unpaid_count >= 5:
-        insights.append("⚠ High number of unpaid bills detected")
-
-    if not insights:
-        insights.append("✅ Business performance looks stable")
-
-    return insights
+    return insights or ["Sales look healthy 👍"]

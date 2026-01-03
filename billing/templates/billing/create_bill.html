@@ -1,222 +1,186 @@
 {% extends "base.html" %}
 {% block title %}Create Bill | BizSight{% endblock %}
+{% block navbar %}
+  {% include "partials/navbar.html" %}
+{% endblock %}
 
 {% block content %}
 
-<h1 style="margin-bottom:6px;">Create New Bill</h1>
-<p style="color:#6B7280; margin-bottom:24px;">
-  Fill the details below to generate a bill
-</p>
+<h1 style="color:#0A1F44; margin-bottom:8px;">Create New Bill</h1>
+<p style="color:#6B7280; margin-bottom:20px;">Generate a new customer bill</p>
 
-<form method="post" action="{% url 'create_bill' %}">
+<div id="formError" style="display:none;color:#B91C1C;margin-bottom:12px;font-weight:600;"></div>
+
+<form method="post" action="{% url 'create_bill' %}" onsubmit="return validateBillForm()">
 {% csrf_token %}
 
-  <!-- ================= CUSTOMER DETAILS ================= -->
-  <div class="card">
-    <h3 style="margin-bottom:12px;">Customer Details (Optional)</h3>
+<div class="card">
+  <h3>Customer Details</h3>
+  <input name="customer_name" placeholder="Customer name" class="form-input">
+  <input name="customer_phone" placeholder="Phone" class="form-input">
+  <input name="customer_email" id="emailField" placeholder="Email" class="form-input">
+  <textarea name="customer_address" placeholder="Address" class="form-input"></textarea>
+</div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-      <div>
-        <label>Customer Name</label>
-        <input type="text" name="customer_name" placeholder="Enter customer name">
-      </div>
+<div class="card">
+  <h3>Items</h3>
+  <table class="invoice-table" id="items">
+    <thead>
+      <tr>
+        <th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input name="item_name[]" required class="form-input"></td>
+        <td><input name="quantity[]" type="number" value="1" class="form-input"></td>
+        <td><input name="price[]" type="number" value="0" class="form-input"></td>
+        <td class="row-total">0</td>
+        <td><button type="button" class="btn btn-danger" onclick="removeRow(this)">✕</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <button type="button" class="btn btn-secondary" onclick="addRow()">+ Add Item</button>
+</div>
 
-      <div>
-        <label>Phone Number</label>
-        <input type="text" name="customer_phone" placeholder="Enter phone number">
-      </div>
+<div class="card">
+  <h3>Payment</h3>
+  <select name="payment_status" class="form-input">
+    <option value="PAID">Paid</option>
+    <option value="UNPAID">Unpaid</option>
+    <option value="PAY_LATER">Pay Later</option>
+  </select>
 
-      <div>
-        <label>
-          Email
-          <span id="emailRequiredText" style="color:red; display:none;">
-            (Required for bills above ₹5000)
-          </span>
-        </label>
-        <input type="email" name="customer_email" id="customerEmail"
-               placeholder="Enter email address">
-      </div>
+  <select name="payment_mode" class="form-input">
+    <option value="CASH">Cash</option>
+    <option value="UPI">UPI</option>
+  </select>
 
-      <div>
-        <label>Address</label>
-        <textarea name="customer_address"
-                  placeholder="Enter address (optional)"
-                  rows="2"></textarea>
-      </div>
-    </div>
-  </div>
+  <input type="number" name="discount" id="discount" value="0" placeholder="Discount" class="form-input">
+</div>
 
-  <br>
+<div class="card total-card">
+  <h3>Total</h3>
+  <p>Subtotal: ₹<span id="subtotal">0</span></p>
+  <p>Discount: ₹<span id="discountValue">0</span></p>
+  <h2 style="color:#0A1F44;">₹<span id="grandTotal">0</span></h2>
+</div>
 
-  <!-- ================= BILL ITEMS ================= -->
-  <div class="card">
-    <h3 style="margin-bottom:12px;">Bill Items</h3>
+<div style="text-align:right;">
+  <button class="btn btn-primary">Generate Bill</button>
+</div>
 
-    <table class="invoice-table" id="itemsTable">
-      <thead>
-        <tr>
-          <th>Item Name</th>
-          <th width="80">Qty</th>
-          <th width="120">Price (₹)</th>
-          <th width="120">Total (₹)</th>
-          <th width="40"></th>
-        </tr>
-      </thead>
-      <tbody id="itemsBody">
-        <tr>
-          <td><input type="text" name="item_name[]" placeholder="Item name" required></td>
-          <td><input type="number" name="quantity[]" value="1" min="1"></td>
-          <td><input type="number" name="price[]" value="0" min="0"></td>
-          <td class="row-total">0</td>
-          <td><button type="button" onclick="removeRow(this)">✕</button></td>
-        </tr>
-      </tbody>
-    </table>
-
-    <button type="button" class="btn btn-secondary" style="margin-top:12px;" onclick="addRow()">
-      + Add Item
-    </button>
-  </div>
-
-  <br>
-
-  <!-- ================= PAYMENT DETAILS ================= -->
-  <div class="card">
-    <h3 style="margin-bottom:12px;">Payment Details</h3>
-
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-      <div>
-        <label>Payment Status</label>
-        <select name="payment_status">
-          <option value="PAID">Paid</option>
-          <option value="UNPAID">Unpaid</option>
-          <option value="PAY_LATER">Pay Later</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Discount (₹)</label>
-        <input type="number" name="discount" id="discount" value="0" min="0">
-      </div>
-    </div>
-  </div>
-
-  <br>
-
-  <!-- ================= SUMMARY ================= -->
-  <div class="card">
-    <h3>Summary</h3>
-
-    <div style="display:flex; justify-content:space-between; margin-top:8px;">
-      <span>Subtotal</span>
-      <strong>₹<span id="subtotal">0</span></strong>
-    </div>
-
-    <div style="display:flex; justify-content:space-between;">
-      <span>Discount</span>
-      <strong>- ₹<span id="discountValue">0</span></strong>
-    </div>
-
-    <hr>
-
-    <div style="display:flex; justify-content:space-between; font-size:18px;">
-      <strong>Total</strong>
-      <strong>₹<span id="grandTotal">0</span></strong>
-    </div>
-  </div>
-
-  <br>
-
-  <!-- ================= ACTION ================= -->
-  <div style="text-align:right;">
-    <button type="submit" class="btn btn-primary">
-      Generate Bill
-    </button>
-  </div>
 </form>
 
-<!-- ================= JS ================= -->
-<script>
-function recalc() {
-  let subtotal = 0;
-
-  document.querySelectorAll("#itemsBody tr").forEach(row => {
-    const qty = +row.querySelector('[name="quantity[]"]').value || 0;
-    const price = +row.querySelector('[name="price[]"]').value || 0;
-    const total = qty * price;
-
-    row.querySelector(".row-total").innerText = total;
-    subtotal += total;
-  });
-
-  document.getElementById("subtotal").innerText = subtotal;
-
-  const discount = +document.getElementById("discount").value || 0;
-  document.getElementById("discountValue").innerText = discount;
-
-  const grandTotal = Math.max(0, subtotal - discount);
-  document.getElementById("grandTotal").innerText = grandTotal;
-
-  // 🔒 EMAIL REQUIRED LOGIC
-  const emailInput = document.getElementById("customerEmail");
-  const emailText = document.getElementById("emailRequiredText");
-
-  if (grandTotal > 5000) {
-    emailInput.required = true;
-    emailText.style.display = "inline";
-  } else {
-    emailInput.required = false;
-    emailText.style.display = "none";
-  }
-}
-
-function addRow() {
-  const row = document.querySelector("#itemsBody tr").cloneNode(true);
-  row.querySelectorAll("input").forEach(input => {
-    if (input.name.includes("quantity")) input.value = 1;
-    else input.value = "";
-  });
-  row.querySelector(".row-total").innerText = "0";
-  document.getElementById("itemsBody").appendChild(row);
-}
-
-function removeRow(btn) {
-  const rows = document.querySelectorAll("#itemsBody tr");
-  if (rows.length > 1) {
-    btn.closest("tr").remove();
-    recalc();
-  }
-}
-
-document.addEventListener("input", recalc);
-</script>
-
 <style>
-input, select, textarea {
+.card {
+  background:#fff;
+  border:1px solid #E5E7EB;
+  border-radius:10px;
+  padding:18px;
+  margin-bottom:20px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+.card h3 {
+  margin-bottom:12px;
+  color:#0A1F44;
+}
+.form-input {
+  display:block;
   width:100%;
+  margin-bottom:10px;
   padding:8px;
   border:1px solid #E5E7EB;
-  border-radius:4px;
+  border-radius:6px;
 }
-
 .invoice-table {
   width:100%;
   border-collapse:collapse;
+  margin-bottom:12px;
 }
-
-.invoice-table th,
+.invoice-table th {
+  background:#0A1F44;
+  color:#fff;
+  padding:8px;
+}
 .invoice-table td {
   border:1px solid #E5E7EB;
-  padding:8px;
-  text-align:left;
+  padding:6px;
 }
-
-.card {
-  background:white;
-  border:1px solid #E5E7EB;
-  border-radius:8px;
-  padding:16px;
+.btn {
+  padding:6px 12px;
+  border-radius:6px;
+  font-weight:600;
+  cursor:pointer;
+  border:none;
+}
+.btn-primary {
+  background:#0A1F44;
+  color:#fff;
+}
+.btn-primary:hover { background:#14356b; }
+.btn-secondary {
+  background:#e6ecf5;
+  color:#0A1F44;
+}
+.btn-secondary:hover { background:#d0d7e6; }
+.btn-danger {
+  background:#FEE2E2;
+  color:#991B1B;
+}
+.btn-danger:hover { background:#fca5a5; }
+.total-card h2 {
+  margin-top:10px;
+  font-size:22px;
 }
 </style>
 
+<!-- SCRIPT -->
+<script>
+function recalc() {
+  let subtotal = 0;
+  document.querySelectorAll("#items tbody tr").forEach((row) => {
+    const q = +row.querySelector('[name="quantity[]"]').value || 0;
+    const p = +row.querySelector('[name="price[]"]').value || 0;
+    const t = q * p;
+    row.querySelector(".row-total").innerText = t;
+    subtotal += t;
+  });
+  const discount = +document.getElementById("discount").value || 0;
+  const total = Math.max(0, subtotal - discount);
+  document.getElementById("subtotal").innerText = subtotal;
+  document.getElementById("discountValue").innerText = discount;
+  document.getElementById("grandTotal").innerText = total;
+  const email = document.getElementById("emailField").value.trim();
+  const errorBox = document.getElementById("formError");
+  if (total >= 5000 && !email) {
+    errorBox.style.display = "block";
+    errorBox.innerText = "Customer email is required for bills above ₹5,000";
+  } else {
+    errorBox.style.display = "none";
+  }
+}
+document.addEventListener("input", recalc);
+function addRow(){
+  const r=document.querySelector("#items tbody tr:last-child").cloneNode(true);
+  r.querySelectorAll("input").forEach(i=>i.value="");
+  r.querySelector(".row-total").innerText=0;
+  document.querySelector("#items tbody").appendChild(r);
+}
+function removeRow(b){
+  if(document.querySelectorAll("#items tbody tr").length>1){
+    b.closest("tr").remove();
+    recalc();
+  }
+}
+function validateBillForm() {
+  const total = +document.getElementById("grandTotal").innerText;
+  const email = document.getElementById("emailField").value.trim();
+  if (total >= 5000 && !email) {
+    alert("Customer email is required for bills above ₹5,000");
+    return false;
+  }
+  return true;
+}
+</script>
 {% endblock %}

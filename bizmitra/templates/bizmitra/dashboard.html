@@ -1,0 +1,144 @@
+{% extends "bizmitra/base_bizmitra.html" %}
+{% block bizmitra_content %}
+
+<div class="header">
+  <h1 class="title">BizMitra Dashboard</h1>
+  <p class="subtitle">Predictive intelligence powered by your business data</p>
+</div>
+
+<div class="card" style="margin-bottom:32px;">
+  <h3 style="margin-bottom:8px;">Business Health Forecast</h3>
+  <p class="subtitle">Machine-learning based cash-flow risk estimation</p>
+  <div style="max-width:320px;margin:auto;">
+    <canvas id="riskChart"></canvas>
+  </div>
+</div>
+
+<div class="insights-grid" style="margin-bottom:32px;">
+  {% for insight in insights %}
+    <div class="insight-card {{ insight.level }}">
+      <div class="insight-header">
+        <h3>{{ insight.title }}</h3>
+        <span class="badge {{ insight.level }}">{{ insight.level|title }}</span>
+      </div>
+      <p class="insight-message">{{ insight.message }}</p>
+      {% if insight.recommendation %}
+      <div class="recommendation">
+        <strong>Recommended action:</strong> {{ insight.recommendation }}
+      </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h3>Key Business Indicators</h3>
+  <p class="subtitle">Visual explanation of patterns behind the insights</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:16px;">
+    <div>
+      <h4 style="margin-bottom:8px;">Unpaid Exposure</h4>
+      <canvas id="unpaidChart" height="160"></canvas>
+    </div>
+    <div>
+      <h4 style="margin-bottom:8px;">Average Bill Value</h4>
+      <canvas id="billGauge" height="160"></canvas>
+    </div>
+  </div>
+</div>
+
+<script id="features-data" type="application/json">
+  {{ features_json|safe }}
+</script>
+<script id="insights-data" type="application/json">
+  {{ insights_json|safe }}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const features = JSON.parse(document.getElementById("features-data").textContent);
+const insights = JSON.parse(document.getElementById("insights-data").textContent);
+
+const riskScore = insights[0].risk_score * 100;
+
+new Chart(document.getElementById("riskChart"), {
+  type: "doughnut",
+  data: {
+    labels: ["Risk", "Safe"],
+    datasets: [{
+      data: [riskScore, 100 - riskScore],
+      backgroundColor: ["#DC2626", "#16A34A"],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    aspectRatio: 1.5,
+    cutout: "70%",
+    plugins: {
+      legend: { position: "bottom" },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => `${ctx.label}: ${ctx.raw.toFixed(1)}%`
+        }
+      }
+    }
+  }
+});
+
+new Chart(document.getElementById("unpaidChart"), {
+  type: "bar",
+  data: {
+    labels: ["Unpaid Bills (%)"],
+    datasets: [{
+      data: [features.unpaid_ratio * 100],
+      backgroundColor: "#F59E0B"
+    }]
+  },
+  options: {
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100,
+        ticks: { callback: v => v + "%" }
+      }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+const avgValue = features.avg_bill_value;
+const gaugeMax = 10000;
+const gaugeValue = Math.min(avgValue, gaugeMax);
+const gaugePercent = (gaugeValue / gaugeMax) * 100;
+
+new Chart(document.getElementById("billGauge"), {
+  type: "doughnut",
+  data: {
+    labels: ["Bill Value"],
+    datasets: [{
+      data: [gaugePercent, 100 - gaugePercent],
+      backgroundColor: ["#0A1F44", "#E5E7EB"],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    aspectRatio: 1.5,
+    cutout: "80%",
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: () => `₹${avgValue.toFixed(0)}`
+        }
+      },
+      title: {
+        display: true,
+        text: `₹${avgValue.toFixed(0)} avg`,
+        font: { size: 16 }
+      }
+    }
+  }
+});
+</script>
+
+{% endblock %}
